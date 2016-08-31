@@ -20,7 +20,6 @@ module ExpressionQuery
       runner = QueryRunner.new(query: query)
 
       scripts.each do |path, node|
-        p path
         runner.run(node) do |node, parents|
           yield path, node, parents
         end

@@ -23,7 +23,8 @@ module ExpressionQuery
       query = Query::Expr::Call.new(receiver: Query::Expr::Star.new, name: :transaction, args: [])
 
       repo.query(query) do |path, node, parents|
-        p node
+        src = node.loc.expression.source.split(/\n/).first
+        puts "#{path}:#{node.loc.first_line}\t#{src}"
       end
     end
   end
