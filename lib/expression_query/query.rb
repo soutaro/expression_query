@@ -62,6 +62,9 @@ module ExpressionQuery
         end
       end
 
+      class Any < Base
+      end
+
       class KeyValue < Base
         attr_reader :key
         attr_reader :expr

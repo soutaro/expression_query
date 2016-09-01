@@ -47,6 +47,8 @@ module ExpressionQuery
         test_literal node, query
       when Query::Expr::Call
         node && test_call(node, query)
+      when Query::Expr::Constant
+        node && node.type == :const && node.children[1] == query.name
       end
     end
 
@@ -62,7 +64,71 @@ module ExpressionQuery
     end
 
     def test_args(arg_nodes, arg_queries)
-      true
+      # p arg_nodes
+
+      while true
+        first_node = arg_nodes.first
+        first_query = arg_queries.first
+
+        if arg_nodes.empty? || arg_queries.empty?
+          return first_query.is_a?(Query::Argument::Any) || arg_nodes.empty? == arg_queries.empty?
+        end
+
+        case first_query
+        when Query::Argument::Expr
+          if first_node && first_node != :hash
+            return true
+          else
+            if first_query.is_a?(Query::Expr::Star)
+              arg_nodes.shift
+            else
+              if test_query(first_node, first_query)
+                arg_nodes.shift
+                arg_queries.shift
+              else
+                return false
+              end
+            end
+          end
+        when Query::Argument::KeyValue
+          if first_node.type == :hash
+            if arg_nodes.count == 1
+              return test_hash_arg(first_node, arg_queries)
+            else
+              return false
+            end
+          else
+            return false
+          end
+        when Query::Argument::Any
+          arg_nodes.shift
+        else
+          p first_node, first_query
+          return false
+        end
+      end
+    end
+
+    def test_hash_arg(hash_node, arg_queries)
+      hash = hash_node.children.each.with_object({}) {|child, hash|
+        return false if child.type != :pair
+
+        key = child.children[0]
+        value = child.children[1]
+
+        return false if key.type != :sym
+
+        hash[key.children.first] = value
+      }
+
+      arg_queries.all? {|q|
+        if q.is_a?(Query::Argument::KeyValue)
+          node = hash[q.key]
+          !node || test_query(node, q.expr)
+        else
+          false
+        end
+      }
     end
 
     def test_literal(node, query)

@@ -20,8 +20,34 @@ module ExpressionQuery
         repo.add_script path: path
       end
 
-      query = Query::Expr::Call.new(receiver: Query::Expr::Star.new, name: :transaction, args: [])
+      # save(validate: false)
+      # query = Query::Expr::Call.new(receiver: Query::Expr::Star.new,
+      #                               name: :save,
+      #                               args: [Query::Argument::KeyValue.new(
+      #                                 key: :validate,
+      #                                 expr: Query::Expr::Star.new
+      #                               )])
 
+      # delete_all
+      # query = Query::Expr::Call.new(receiver: Query::Expr::Star.new,
+      #                               name: :delete_all,
+      #                               args: [])
+
+      # unscoped
+      # query = Query::Expr::Call.new(receiver: Query::Expr::Star.new,
+      #                               name: :unscoped,
+      #                               args: [])
+
+      # File.open
+      query = Query::Expr::Call.new(receiver: Query::Expr::Constant.new(name: :File),
+                                    name: :open,
+                                    args: [Query::Argument::Any.new])
+
+      # Pathname.new
+      # query = Query::Expr::Call.new(receiver: Query::Expr::Constant.new(name: :Pathname),
+      #                               name: :new,
+      #                               args: [Query::Argument::Any.new])
+      
       repo.query(query) do |path, node, parents|
         src = node.loc.expression.source.split(/\n/).first
         puts "#{path}:#{node.loc.first_line}\t#{src}"
